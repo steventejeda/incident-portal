@@ -1,0 +1,5 @@
+{
+    "dataworkspace.excludedProjects": [
+        "incident-management/incident-management.sqlproj"
+    ]
+}
