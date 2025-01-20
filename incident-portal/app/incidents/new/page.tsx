@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Button, Callout, Text, TextField } from '@radix-ui/themes';
+import { Button, Callout, TextField } from '@radix-ui/themes';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import dynamic from 'next/dynamic';
 import axios from 'axios';
@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createIncidentSchema } from '@/app/validationSchemas';
 import { z } from 'zod';
+import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 
 type IncidentForm = z.infer<typeof createIncidentSchema>;
 
@@ -24,6 +26,7 @@ const NewIncidentPage = () => {
         resolver: zodResolver(createIncidentSchema)
     });
     const [error, setError] = useState('');
+    const [isSubmitting, setSubmitting] = useState(false);
 
     return (
         <div className="max-w-xl">
@@ -37,10 +40,12 @@ const NewIncidentPage = () => {
                 className='max-w-xl space-y-3'
                 onSubmit={handleSubmit(async (data) => {
                     try {
+                        setSubmitting(true);
                         await axios.post('/api/incidents', data);
                         router.push('/incidents');
                     }
                     catch {
+                        setSubmitting(false);
                         setError('An unexpected error occurred');
                     }
                 }
@@ -50,16 +55,20 @@ const NewIncidentPage = () => {
                         <MagnifyingGlassIcon height="16" width="16" />
                     </TextField.Slot>
                 </TextField.Root>
-                {errors.title && <Text color="red" as="p">{errors.title.message}</Text>}
+                <ErrorMessage>
+                    {errors.title?.message}
+                </ErrorMessage>
                 <Controller
                     name="description"
                     control={control}
-                    render={({ field }) => (<SimpleMDE placeholder="Description" {...field} />
-
+                    render={({ field }) => (
+                    <SimpleMDE placeholder="Description" {...field} />
                     )}
                 />
-                {errors.description && <Text color="red" as="p">{errors.description.message}</Text>}
-                <Button>Submit a new incident</Button>
+                <ErrorMessage>
+                    {errors.description?.message}
+                </ErrorMessage>
+                <Button disabled={isSubmitting}>Submit a new incident {isSubmitting && <Spinner />}</Button>
             </form>
         </div>
     );
