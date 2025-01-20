@@ -1,63 +1,72 @@
-import { patchIncidentSchema } from "@/app/validationSchemas";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { patchIncidentSchema } from "@/app/validationSchemas";
 const prisma = new PrismaClient();
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing id parameter" }, { status: 400 });
+  }
+
+  // Ensure the id is a valid number
+  const parsedId = parseInt(id, 10);
+  if (isNaN(parsedId)) {
+    return NextResponse.json({ error: "Invalid id parameter" }, { status: 400 });
+  }
+
   const body = await request.json();
   const validation = patchIncidentSchema.safeParse(body);
-  if (!validation.success)
-    return NextResponse.json(validation.error.format(), {
-      status: 400,
-    });
+  
+  if (!validation.success) {
+    return NextResponse.json(validation.error.format(), { status: 400 });
+  }
 
   const { title, description } = body;
 
+  // Find the incident using the parsed ID
   const incident = await prisma.incident.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: parsedId },
   });
-  if (!incident)
-    return NextResponse.json(
-      { error: "Invalid Incident" },
-      { status: 404 }
-    );
+
+  if (!incident) {
+    return NextResponse.json({ error: "Invalid Incident" }, { status: 404 });
+  }
 
   const updatedIncident = await prisma.incident.update({
     where: { id: incident.id },
     data: {
       title,
-      description
+      description,
     },
   });
 
   return NextResponse.json(updatedIncident);
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;  
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json(
-      { error: "Missing id parameter" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing id parameter" }, { status: 400 });
+  }
+
+  // Ensure the id is a valid number
+  const parsedId = parseInt(id, 10);
+  if (isNaN(parsedId)) {
+    return NextResponse.json({ error: "Invalid id parameter" }, { status: 400 });
   }
 
   const incident = await prisma.incident.findUnique({
-    where: { id: parseInt(id) }, 
+    where: { id: parsedId },
   });
 
-  if (!incident)
-    return NextResponse.json(
-      { error: "Invalid incident" },
-      { status: 404 }
-    );
+  if (!incident) {
+    return NextResponse.json({ error: "Invalid incident" }, { status: 404 });
+  }
 
   await prisma.incident.delete({
     where: { id: incident.id },

@@ -9,11 +9,12 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 interface Props {
-  searchParams: IncidentQuery; 
+  searchParams: Promise<IncidentQuery>;  
 }
 
 const IncidentsPage = async ({ searchParams }: Props) => {
-  const { status, orderBy: orderByQuery, page } = searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { status, orderBy: orderByQuery, page } = resolvedSearchParams;
 
   const statuses = Object.values(STATUS);
   const filteredStatus = statuses.includes(status) ? status : undefined;
@@ -26,7 +27,7 @@ const IncidentsPage = async ({ searchParams }: Props) => {
 
   const currentPage = parseInt(page) || 1;
   const pageSize = 10;
-
+  
   const incidents = await prisma.incident.findMany({
     where,
     orderBy,
@@ -39,7 +40,7 @@ const IncidentsPage = async ({ searchParams }: Props) => {
   return (
     <Flex direction="column" gap="3">
       <IncidentActions />
-      <IncidentTable searchParams={searchParams} incidents={incidents} />
+      <IncidentTable searchParams={resolvedSearchParams} incidents={incidents} />
       <Pagination
         pageSize={pageSize}
         currentPage={currentPage}
