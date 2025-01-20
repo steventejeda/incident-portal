@@ -7,7 +7,6 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-
   const body = await request.json();
   const validation = patchIncidentSchema.safeParse(body);
   if (!validation.success)
@@ -15,7 +14,7 @@ export async function PATCH(
       status: 400,
     });
 
-  const {title, description } = body;
+  const { title, description } = body;
 
   const incident = await prisma.incident.findUnique({
     where: { id: parseInt(params.id) },
@@ -41,9 +40,17 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;  
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "Missing id parameter" },
+      { status: 400 }
+    );
+  }
 
   const incident = await prisma.incident.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: parseInt(id) }, 
   });
 
   if (!incident)
