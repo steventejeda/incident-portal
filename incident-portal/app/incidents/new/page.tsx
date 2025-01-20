@@ -3,24 +3,44 @@ import React from 'react';
 import { Button, TextField } from '@radix-ui/themes';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import dynamic from 'next/dynamic';
+import axios from 'axios';
+import { useForm, Controller } from 'react-hook-form';
+import "easymde/dist/easymde.min.css"
+import "easymde/dist/easymde.min.css";
+import { useRouter } from 'next/navigation';
+
+interface IncidentForm { 
+    title: string;
+    description: string;
+}
 
 const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
   ssr: false,
 });
 
-import "easymde/dist/easymde.min.css";
-
 const NewIncidentPage = () => {
+ const router = useRouter();
+ const {register, control, handleSubmit} =  useForm<IncidentForm>();
+
   return (
-    <div className='max-w-xl space-y-3'>
-      <TextField.Root placeholder='Title'>
+    <form className='max-w-xl space-y-3' 
+    onSubmit={handleSubmit(async (data) => { 
+        await axios.post('/api/incidents', data);
+        router.push('/incidents');
+    }
+    )}>
+      <TextField.Root placeholder='Title'  {...register('title')}>
         <TextField.Slot>
           <MagnifyingGlassIcon height="16" width="16" />
         </TextField.Slot>
       </TextField.Root>
-      <SimpleMDE placeholder="Description" />
+      <Controller
+        name="description"
+        control={control}
+        render = {({ field }) => <SimpleMDE placeholder="Description" {...field} />} 
+      />
       <Button>Submit a new incident</Button>
-    </div>
+    </form>
   );
 };
 
