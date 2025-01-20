@@ -16,7 +16,7 @@ import { z } from 'zod';
 
 type IncidentFormData = z.infer<typeof createIncidentSchema>;
 
-const IssueForm = ({ incident }: { incident?: Incident }) => {
+const IncidentForm = ({ incident }: { incident?: Incident }) => {
   const router = useRouter();
   const {
     register,
@@ -32,9 +32,9 @@ const IssueForm = ({ incident }: { incident?: Incident }) => {
   const onSubmit = handleSubmit(async (data) => {
     try {
       setSubmitting(true);
-      if (incident) await axios.patch('/api/issues/' + incident.id, data);
-      else await axios.post('/api/issues', data);
-      router.push('/issues/list');
+      if (incident) await axios.patch('/api/incidents/' + incident.id, data);
+      else await axios.post('/api/incidents', data);
+      router.push('/incidents/list');
       router.refresh();
     } catch {
       setSubmitting(false);
@@ -68,7 +68,7 @@ const IssueForm = ({ incident }: { incident?: Incident }) => {
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
         <Button disabled={isSubmitting}>
-          {incident ? 'Update Issue' : 'Submit New Issue'}{' '}
+          {incident ? 'Update Incident' : 'Submit New Incident'}{' '}
           {isSubmitting && <Spinner />}
         </Button>
       </form>
@@ -76,4 +76,4 @@ const IssueForm = ({ incident }: { incident?: Incident }) => {
   );
 };
 
-export default IssueForm;
+export default IncidentForm;
